@@ -311,9 +311,16 @@ def _extract_promo_time_range(
 
     try:
         pdf_file = io.BytesIO(pdf_bytes)
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore")
-            reader = PdfReader(pdf_file)
+        # Suppress pypdf warnings (logged to root logger and via warnings module)
+        pypdf_logger = logging.getLogger("pypdf")
+        original_level = pypdf_logger.level
+        pypdf_logger.setLevel(logging.ERROR)
+        try:
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore")
+                reader = PdfReader(pdf_file)
+        finally:
+            pypdf_logger.setLevel(original_level)
 
         text_chunks = [
             page_text
